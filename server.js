@@ -7,9 +7,9 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-// Configuração do CORS
+// Configuração do CORS com a URL do frontend vinda do .env
 app.use(cors({
-    origin: 'https://brave-smoke-0bf91ef0f.5.azurestaticapps.net',  // URL do frontend no Azure
+    origin: process.env.FRONTEND_URL,  // URL do seu frontend do .env
 }));
 
 // Inicializa o servidor
