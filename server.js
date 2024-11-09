@@ -5,7 +5,7 @@ const app = require('./app');
 // Carrega as variáveis de ambiente
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // Configuração do CORS com a URL do frontend vinda do .env
 app.use(cors({
