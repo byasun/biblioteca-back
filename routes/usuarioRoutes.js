@@ -1,29 +1,24 @@
 const express = require('express');
-const { 
-    registrarUsuario, 
-    loginUsuario, 
-    obterPerfilUsuario, 
-    obterEstante, 
-    adicionarLivroEstante, 
-    removerLivroEstante 
-} = require('../controllers/usuarioController');
-const jwt = require('express-jwt');
+const { auth } = require('express-oauth2-jwt-bearer'); // Nova importação
 const jwksRsa = require('jwks-rsa');
 const Joi = require('joi');
+const { 
+  registrarUsuario, 
+  loginUsuario, 
+  obterPerfilUsuario, 
+  obterEstante, 
+  adicionarLivroEstante, 
+  removerLivroEstante 
+} = require('../controllers/usuarioController');
+require('dotenv').config();
 
 const router = express.Router();
 
 // Middleware de autenticação usando o Auth0
-const checkJwt = jwt({
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-  }),
+const checkJwt = auth({
   audience: process.env.AUTH0_API_IDENTIFIER,
-  issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-  algorithms: ['RS256'],
+  issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
+  tokenSigningAlg: 'RS256',
 });
 
 // Validação dos dados de registro usando Joi
