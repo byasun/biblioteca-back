@@ -1,18 +1,15 @@
 const dotenv = require('dotenv');
+dotenv.config();
+
 const cors = require('cors');
 const app = require('./app');
 
-// Carrega as variáveis de ambiente
-dotenv.config();
+const PORT = process.argv.includes("--port=$PORT") ? process.env.PORT : 8080;
 
-const PORT = process.env.PORT || 8080;
-
-// Configuração do CORS com a URL do frontend vinda do .env
 app.use(cors({
-    origin: process.env.FRONTEND_URL,  // URL do seu frontend do .env
+    origin: process.env.FRONTEND_URL,
 }));
 
-// Inicializa o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
