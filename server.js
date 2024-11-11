@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 const cors = require('cors');
 const app = require('./app');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8181;
 
 connectDB().then(() => {
     app.listen(PORT, () => {

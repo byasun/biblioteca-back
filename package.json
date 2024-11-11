@@ -22,8 +22,8 @@
         "nodemon": "^2.0.22"
     },
     "engines": {
-        "node": "20.15.1",
-        "npm": "10.7.0"
+        "node": "20.17.0",
+        "npm": "10.8.2"
     },
     "author": "Anna Clara Gomes",
     "license": "ISC"
