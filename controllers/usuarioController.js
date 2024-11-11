@@ -1,5 +1,6 @@
 const Usuario = require('../models/Usuario');
 const bcrypt = require('bcryptjs');
+const Joi = require('joi');
 
 // Função de validação dos dados de registro com Joi
 const validarCadastro = (dados) => {
@@ -65,22 +66,6 @@ exports.loginUsuario = async (req, res) => {
         res.status(200).json({ message: 'Login bem-sucedido!', usuario });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Erro ao realizar login' });
-    }
-};
-
-// Login de usuário
-exports.loginUsuario = async (req, res) => {
-    try {
-        const { email, senha } = req.body;
-        const usuario = await Usuario.findOne({ email });
-
-        if (!usuario || !(await bcrypt.compare(senha, usuario.senha))) {
-            return res.status(400).json({ error: 'Credenciais inválidas' });
-        }
-
-        res.status(200).json({ message: 'Login bem-sucedido', usuario });
-    } catch (error) {
         res.status(500).json({ error: 'Erro ao realizar login' });
     }
 };
