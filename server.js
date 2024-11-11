@@ -16,10 +16,6 @@ connectDB().then(() => {
     process.exit(1);
 });
 
-app.use(cors({
-    origin: process.env.FRONTEND_URL,
-}));
-
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
