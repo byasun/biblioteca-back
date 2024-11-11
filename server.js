@@ -7,6 +7,7 @@ const app = require('./app');
 
 const PORT = process.env.PORT || 8181;
 
+// Conectar ao banco de dados e iniciar o servidor
 connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`Servidor rodando na porta ${PORT}`);
@@ -14,8 +15,4 @@ connectDB().then(() => {
 }).catch(err => {
     console.error('Erro ao conectar ao banco de dados:', err);
     process.exit(1);
-});
-
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
 });
