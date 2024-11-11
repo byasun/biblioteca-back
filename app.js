@@ -7,7 +7,9 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 // Permitir CORS para todas as origens
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'https://brave-smoke-0bf91ef0f.5.azurestaticapps.net'
+  }));
 
 // Conectar ao banco de dados
 connectDB();
