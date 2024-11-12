@@ -8,6 +8,7 @@ const validarCadastro = (dados) => {
         nome: Joi.string().min(3).max(255).required(),
         email: Joi.string().email().required(),
         senha: Joi.string().min(6).required(),
+        senhaConfirmar: Joi.any().strip(), // Ignorar o campo senhaConfirmar
         chave: Joi.string().optional(),
     });
 
