@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 const cors = require('cors');
 const app = require('./app');
 
-const PORT = process.env.PORT || 8181;
+const PORT = process.env.PORT;
 
 // Conectar ao banco de dados e iniciar o servidor
 connectDB().then(() => {
