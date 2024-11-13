@@ -26,18 +26,24 @@ exports.registrarUsuario = async (req, res) => {
     try {
         const { nome, email, senha, chave } = req.body;
 
+        // Verificar se o usuário já existe
         const usuarioExistente = await Usuario.findOne({ email });
         if (usuarioExistente) {
             return res.status(400).json({ error: 'Email já cadastrado.' });
         }
 
+        // Hash da senha antes de salvar no banco de dados
+        const senhaHashada = await bcrypt.hash(senha, 10); // 10 é o número de rounds de salt
+
+        // Criar um novo usuário com a senha hashada
         const novoUsuario = new Usuario({
             nome,
             email,
-            senha,
+            senha: senhaHashada,  // Usar a senha hashada
             chave
         });
 
+        // Salvar o novo usuário no banco de dados
         await novoUsuario.save();
         res.status(201).json({ message: 'Usuário registrado com sucesso!' });
     } catch (error) {
