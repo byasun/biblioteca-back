@@ -1,6 +1,7 @@
 const Usuario = require('../models/Usuario');
 const bcrypt = require('bcryptjs');
 const Joi = require('joi');
+const jwt = require('jsonwebtoken');
 
 // Função de validação dos dados de registro com Joi
 const validarCadastro = (dados) => {
@@ -17,7 +18,6 @@ const validarCadastro = (dados) => {
 
 // Registrar usuário
 exports.registrarUsuario = async (req, res) => {
-    // Validar dados
     const { error } = validarCadastro(req.body);
     if (error) {
         return res.status(400).json({ error: error.details[0].message });
@@ -26,17 +26,15 @@ exports.registrarUsuario = async (req, res) => {
     try {
         const { nome, email, senha, chave } = req.body;
 
-        // Verificar se o usuário já existe
         const usuarioExistente = await Usuario.findOne({ email });
         if (usuarioExistente) {
             return res.status(400).json({ error: 'Email já cadastrado.' });
         }
 
-        // Criar novo usuário
         const novoUsuario = new Usuario({
             nome,
             email,
-            senha,  // A senha será criptografada automaticamente
+            senha,
             chave
         });
 
@@ -48,7 +46,7 @@ exports.registrarUsuario = async (req, res) => {
     }
 };
 
-// Função para comparar a senha fornecida com a armazenada
+// Função para realizar login e gerar token JWT
 exports.loginUsuario = async (req, res) => {
     const { email, senha } = req.body;
     try {
@@ -58,23 +56,29 @@ exports.loginUsuario = async (req, res) => {
             return res.status(400).json({ error: 'Usuário não encontrado!' });
         }
 
-        // Comparar a senha fornecida com a criptografada no banco
         const senhaValida = await bcrypt.compare(senha, usuario.senha);
         if (!senhaValida) {
             return res.status(400).json({ error: 'Senha inválida!' });
         }
 
-        res.status(200).json({ message: 'Login bem-sucedido!', usuario });
+        // Gerar o token JWT com o ID do usuário
+        const token = jwt.sign(
+            { id: usuario._id },
+            process.env.JWT_SECRET,  // Chave secreta para assinatura do token
+            { expiresIn: '1h' }      // Token expira em 1 hora
+        );
+
+        res.status(200).json({ message: 'Login bem-sucedido!', token, usuario: { id: usuario._id, nome: usuario.nome, email: usuario.email } });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Erro ao realizar login' });
     }
 };
 
-// Obter perfil do usuário
+// Obter perfil do usuário (rota protegida)
 exports.obterPerfilUsuario = async (req, res) => {
     try {
-        const usuarioId = req.usuarioId; // O ID do usuário vem de um token JWT
+        const usuarioId = req.usuarioId;
         const usuario = await Usuario.findById(usuarioId);
         res.status(200).json(usuario);
     } catch (error) {
@@ -82,7 +86,7 @@ exports.obterPerfilUsuario = async (req, res) => {
     }
 };
 
-// Obter estante do usuário
+// Obter estante do usuário (rota protegida)
 exports.obterEstante = async (req, res) => {
     try {
         const usuarioId = req.usuarioId;
@@ -93,7 +97,7 @@ exports.obterEstante = async (req, res) => {
     }
 };
 
-// Adicionar livro à estante
+// Adicionar livro à estante (rota protegida)
 exports.adicionarLivroEstante = async (req, res) => {
     try {
         const usuarioId = req.usuarioId;
@@ -109,7 +113,7 @@ exports.adicionarLivroEstante = async (req, res) => {
     }
 };
 
-// Remover livro da estante
+// Remover livro da estante (rota protegida)
 exports.removerLivroEstante = async (req, res) => {
     try {
         const usuarioId = req.usuarioId;

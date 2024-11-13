@@ -1,25 +1,17 @@
 const express = require('express');
-const { auth } = require('express-oauth2-jwt-bearer'); // Nova importação
-const jwksRsa = require('jwks-rsa');
 const Joi = require('joi');
-const { 
-  registrarUsuario, 
-  loginUsuario, 
-  obterPerfilUsuario, 
-  obterEstante, 
-  adicionarLivroEstante, 
-  removerLivroEstante 
+const {
+  registrarUsuario,
+  loginUsuario,
+  obterPerfilUsuario,
+  obterEstante,
+  adicionarLivroEstante,
+  removerLivroEstante
 } = require('../controllers/usuarioController');
+const autenticarUsuario = require('../middleware/authMiddleware'); // Importando o middleware de autenticação
 require('dotenv').config();
 
 const router = express.Router();
-
-// Middleware de autenticação usando o Auth0
-const checkJwt = auth({
-  audience: process.env.AUTH0_API_IDENTIFIER,
-  issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-  tokenSigningAlg: 'RS256',
-});
 
 // Validação dos dados de registro usando Joi
 const schema = Joi.object({
@@ -46,9 +38,9 @@ router.post('/registrar', validarCadastro, registrarUsuario);
 router.post('/login', loginUsuario);
 
 // Rotas protegidas
-router.get('/perfil', checkJwt, obterPerfilUsuario);
-router.get('/estante', checkJwt, obterEstante);
-router.post('/estante/adicionar', checkJwt, adicionarLivroEstante);
-router.delete('/estante/remover/:id', checkJwt, removerLivroEstante);
+router.get('/perfil', autenticarUsuario, obterPerfilUsuario);
+router.get('/estante', autenticarUsuario, obterEstante);
+router.post('/estante/adicionar', autenticarUsuario, adicionarLivroEstante);
+router.delete('/estante/remover/:id', autenticarUsuario, removerLivroEstante);
 
 module.exports = router;
