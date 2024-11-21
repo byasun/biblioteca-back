@@ -1,25 +1,19 @@
 const jwt = require('jsonwebtoken');
 
 const autenticarUsuario = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1];
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Acesso não autorizado' });
+  }
 
-    if (!token) {
-        return res.status(401).json({ error: 'Acesso negado! Token não fornecido.' });
-    }
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.usuarioId = decoded.id;
-        next();
-    } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({ error: 'Token expirado! Faça login novamente.' });
-        }
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(400).json({ error: 'Token inválido!' });
-        }
-        return res.status(500).json({ error: 'Erro interno no servidor!' });
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.usuarioId = decoded.id; // Adiciona o id do usuário à requisição
+    next();
+  } catch (error) {
+    return res.status(400).json({ error: 'Token inválido' });
+  }
 };
 
-module.exports = autenticarUsuario;
+module.exports = { autenticarUsuario };

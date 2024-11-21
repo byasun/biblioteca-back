@@ -1,22 +1,26 @@
 const express = require('express');
-const cors = require('cors');
+const conectarDB = require('./config/db');
 const usuarioRoutes = require('./routes/usuarioRoutes');
-const errorHandler = require('./middleware/errorHandler');
+const livroRoutes = require('./routes/livroRoutes');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
 
-// Permitir CORS para todas as origens
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'https://brave-smoke-0bf91ef0f.5.azurestaticapps.net'
-}));
+// Conectar ao banco de dados
+conectarDB();
 
-// Middleware básico
-app.use(express.json());
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
 
-// Rota de usuário
+// Rotas
 app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/livros', livroRoutes);
 
-// Middleware de tratamento de erros
-app.use(errorHandler);
+// Rota inicial
+app.get('/', (req, res) => {
+    res.send('API da Biblioteca Comunitária');
+});
 
 module.exports = app;

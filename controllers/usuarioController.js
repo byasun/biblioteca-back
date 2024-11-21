@@ -1,140 +1,23 @@
 const Usuario = require('../models/Usuario');
-const bcrypt = require('bcryptjs');
-const Joi = require('joi');
-const jwt = require('jsonwebtoken');
 
-// Função de validação dos dados de registro com Joi
-const validarCadastro = (dados) => {
-    const schema = Joi.object({
-        nome: Joi.string().min(3).max(255).required(),
-        email: Joi.string().email().required(),
-        senha: Joi.string().min(6).required(),
-        senhaConfirmar: Joi.any().strip(), // Ignorar o campo senhaConfirmar
-        chave: Joi.string().optional(),
-    });
-
-    return schema.validate(dados);
-};
-
-// Registrar usuário
-exports.registrarUsuario = async (req, res) => {
-    const { error } = validarCadastro(req.body);
-    if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-    }
-
+exports.cadastrarUsuario = async (req, res) => {
+    const { nome, email, senha } = req.body;
     try {
-        const { nome, email, senha, chave } = req.body;
-
-        // Verificar se o usuário já existe
-        const usuarioExistente = await Usuario.findOne({ email });
-        if (usuarioExistente) {
-            return res.status(400).json({ error: 'Email já cadastrado.' });
-        }
-
-        // Hash da senha antes de salvar no banco de dados
-        const senhaHashada = await bcrypt.hash(senha, 10); // 10 é o número de rounds de salt
-
-        // Criar um novo usuário com a senha hashada
-        const novoUsuario = new Usuario({
-            nome,
-            email,
-            senha: senhaHashada,  // Usar a senha hashada
-            chave
-        });
-
-        // Salvar o novo usuário no banco de dados
+        const novoUsuario = new Usuario({ nome, email, senha });
         await novoUsuario.save();
-        res.status(201).json({ message: 'Usuário registrado com sucesso!' });
+        res.status(201).json({ message: 'Usuário cadastrado com sucesso!', usuario: novoUsuario });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Erro ao registrar usuário.' });
+        res.status(500).json({ error: 'Erro ao cadastrar usuário' });
     }
 };
 
-// Função para realizar login e gerar token JWT
-exports.loginUsuario = async (req, res) => {
-    const { email, senha } = req.body;
+exports.listarUsuarios = async (req, res) => {
     try {
-        const usuario = await Usuario.findOne({ email });
-        
-        if (!usuario) {
-            return res.status(400).json({ error: 'Usuário não encontrado!' });
-        }
-
-        const senhaValida = await bcrypt.compare(senha, usuario.senha);
-        if (!senhaValida) {
-            return res.status(400).json({ error: 'Senha inválida!' });
-        }
-
-        // Gerar o token JWT com o ID do usuário
-        const token = jwt.sign(
-            { id: usuario._id },
-            process.env.JWT_SECRET,  // Chave secreta para assinatura do token
-            { expiresIn: '1h' }      // Token expira em 1 hora
-        );
-
-        res.status(200).json({ message: 'Login bem-sucedido!', token, usuario: { id: usuario._id, nome: usuario.nome, email: usuario.email } });
+        const usuarios = await Usuario.find();
+        res.status(200).json(usuarios);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Erro ao realizar login' });
-    }
-};
-
-// Obter perfil do usuário (rota protegida)
-exports.obterPerfilUsuario = async (req, res) => {
-    try {
-        const usuarioId = req.usuarioId;
-        const usuario = await Usuario.findById(usuarioId);
-        res.status(200).json(usuario);
-    } catch (error) {
-        res.status(404).json({ error: 'Usuário não encontrado' });
-    }
-};
-
-// Obter estante do usuário (rota protegida)
-exports.obterEstante = async (req, res) => {
-    try {
-        const usuarioId = req.usuarioId;
-        const usuario = await Usuario.findById(usuarioId);
-        res.status(200).json(usuario.estante);
-    } catch (error) {
-        res.status(404).json({ error: 'Estante não encontrada' });
-    }
-};
-
-// Função para adicionar livro à estante
-esxports.adicionarLivroEstante = async (req, res) => {
-    const { livroId, titulo, status } = req.body;
-    try {
-        const usuario = await Usuario.findById(req.usuarioId); // Pega o ID do usuário da requisição
-
-        if (status === 'doacao') {
-            usuario.estante.doacoes.push({ livroId, titulo, dataDoacao: new Date() });
-        } else if (status === 'emprestimo') {
-            usuario.estante.emprestimos.push({ livroId, titulo, dataEmprestimo: new Date(), dataDevolucao: null });
-        }
-
-        await usuario.save();
-        res.status(200).json({ message: 'Livro adicionado à estante com sucesso!' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao adicionar livro à estante' });
-    }
-};
-
-// Remover livro da estante (rota protegida)
-exports.removerLivroEstante = async (req, res) => {
-    try {
-        const usuarioId = req.usuarioId;
-        const { id } = req.params;
-
-        const usuario = await Usuario.findById(usuarioId);
-        usuario.estante = usuario.estante.filter((livro) => livro._id != id);
-        await usuario.save();
-
-        res.status(200).json({ message: 'Livro removido da estante!' });
-    } catch (error) {
-        res.status(400).json({ error: 'Erro ao remover livro' });
+        res.status(500).json({ error: 'Erro ao buscar usuários' });
     }
 };
