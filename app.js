@@ -2,7 +2,7 @@ const express = require('express');
 const conectarDB = require('./config/db');
 const usuarioRoutes = require('./routes/usuarioRoutes');
 const livroRoutes = require('./routes/livroRoutes');
-const bodyParser = require('body-parser');
+/**const bodyParser = require('body-parser'); */
 const cors = require('cors');
 const logger = require('./utils/loggers');
 const errorHandler = require('./middleware/errorHandler');
@@ -15,8 +15,9 @@ conectarDB()
     .catch((err) => logger.error('Erro ao conectar ao banco de dados:', { message: err.message }));
 
 // Middleware
+app.options('*', cors());
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // Substitui o bodyParser.json()
 app.use((req, res, next) => {
     logger.info(`Requisição recebida: ${req.method} ${req.url}`);
     next();
