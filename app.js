@@ -4,7 +4,7 @@ const usuarioRoutes = require('./routes/usuarioRoutes');
 const livroRoutes = require('./routes/livroRoutes');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const logger = require('./utils/logger');
+const logger = require('./utils/loggers');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();

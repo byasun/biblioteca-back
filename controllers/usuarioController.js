@@ -1,5 +1,5 @@
 const Usuario = require('../models/Usuario');
-const logger = require('../utils/logger');
+const logger = require('../utils/loggers');
 
 exports.cadastrarUsuario = async (req, res, next) => {
     const { nome, email, senha } = req.body;
