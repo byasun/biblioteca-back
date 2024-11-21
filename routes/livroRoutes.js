@@ -1,11 +1,11 @@
 const express = require('express');
-const livroController = require('../controllers/livroController');
 const router = express.Router();
+const livroController = require('../controllers/livroController');
 
-router.post('/cadastrar', livroController.cadastrarLivro);
+router.post('/', livroController.cadastrarLivro);
 router.get('/', livroController.listarLivros);
-router.get('/:busca', livroController.buscarLivroPorTituloOuIsbn);  // Busca por título ou ISBN
-router.put('/:id', livroController.atualizarLivro);
-router.delete('/:id', livroController.removerLivro);
+router.get('/:termo', livroController.buscarLivroPorNomeOuISBN);
+router.put('/:termo', livroController.atualizarLivroPorNomeOuISBN);
+router.delete('/:termo', livroController.removerLivroPorNomeOuISBN);
 
 module.exports = router;

@@ -1,18 +1,13 @@
 const jwt = require('jsonwebtoken');
+const logger = require('./logger');
 
-const gerarToken = (dados, segredo, tempoExpiracao = '1h') => {
-    return jwt.sign(dados, segredo, { expiresIn: tempoExpiracao });
-};
-
-const verificarToken = (token, segredo) => {
+exports.gerarToken = (payload) => {
     try {
-        return jwt.verify(token, segredo);
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+        logger.info('Token JWT gerado com sucesso.');
+        return token;
     } catch (error) {
-        return null;
+        logger.error('Erro ao gerar token JWT:', error);
+        throw error;
     }
-};
-
-module.exports = {
-    gerarToken,
-    verificarToken
 };

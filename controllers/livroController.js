@@ -1,90 +1,84 @@
 const Livro = require('../models/Livro');
-const Emprestimo = require('../models/Emprestimo');
-const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
-// Cadastrar livro
-exports.cadastrarLivro = async (req, res) => {
+exports.cadastrarLivro = async (req, res, next) => {
     const { titulo, autor, genero, descricao, isbn } = req.body;
     try {
         const novoLivro = new Livro({ titulo, autor, genero, descricao, isbn });
         await novoLivro.save();
+        logger.info(`Livro cadastrado: ${titulo} (${isbn})`);
         res.status(201).json({ message: 'Livro cadastrado com sucesso!', livro: novoLivro });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao cadastrar livro' });
+        logger.error('Erro ao cadastrar livro:', error);
+        next(error);
     }
 };
 
-// Listar livros
-exports.listarLivros = async (req, res) => {
+exports.listarLivros = async (req, res, next) => {
     try {
         const livros = await Livro.find();
+        logger.info('Lista de livros recuperada com sucesso.');
         res.status(200).json(livros);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao buscar livros' });
+        logger.error('Erro ao listar livros:', error);
+        next(error);
     }
 };
 
-// Buscar livro por título ou ISBN
-exports.buscarLivroPorTituloOuIsbn = async (req, res) => {
-    const { busca } = req.params;  // 'busca' pode ser o título ou ISBN
+exports.buscarLivroPorNomeOuISBN = async (req, res, next) => {
+    const { termo } = req.params; // termo pode ser título ou ISBN
     try {
-        // Tentar buscar pelo título ou ISBN
-        const livro = await Livro.findOne({ 
-            $or: [{ titulo: new RegExp(busca, 'i') }, { isbn: busca }] 
-        });
-
+        const query = isNaN(termo) // Verifica se o termo é número (ISBN)
+            ? { titulo: new RegExp(termo, 'i') } // Busca por título (case insensitive)
+            : { isbn: termo }; // Busca por ISBN
+        const livro = await Livro.findOne(query);
         if (!livro) {
+            logger.warn(`Livro não encontrado: ${termo}`);
             return res.status(404).json({ error: 'Livro não encontrado' });
         }
-
+        logger.info(`Livro encontrado: ${livro.titulo} (${livro.isbn})`);
         res.status(200).json(livro);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao buscar livro' });
+        logger.error('Erro ao buscar livro:', error);
+        next(error);
     }
 };
 
-// Atualizar livro
-exports.atualizarLivro = async (req, res) => {
-    const { id } = req.params;
+exports.atualizarLivroPorNomeOuISBN = async (req, res, next) => {
+    const { termo } = req.params;
     const { titulo, autor, genero, descricao, isbn } = req.body;
     try {
-        const livroAtualizado = await Livro.findByIdAndUpdate(id, { titulo, autor, genero, descricao, isbn }, { new: true });
+        const query = isNaN(termo) ? { titulo: termo } : { isbn: termo };
+        const livroAtualizado = await Livro.findOneAndUpdate(
+            query,
+            { titulo, autor, genero, descricao, isbn },
+            { new: true }
+        );
         if (!livroAtualizado) {
+            logger.warn(`Livro não encontrado para atualização: ${termo}`);
             return res.status(404).json({ error: 'Livro não encontrado' });
         }
+        logger.info(`Livro atualizado: ${livroAtualizado.titulo} (${livroAtualizado.isbn})`);
         res.status(200).json({ message: 'Livro atualizado com sucesso!', livro: livroAtualizado });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao atualizar livro' });
+        logger.error('Erro ao atualizar livro:', error);
+        next(error);
     }
 };
 
-// Remover livro (verificando empréstimo)
-exports.removerLivro = async (req, res) => {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ error: 'ID inválido' });
-    }
-
+exports.removerLivroPorNomeOuISBN = async (req, res, next) => {
+    const { termo } = req.params;
     try {
-        // Verificar se o livro está associado a algum empréstimo
-        const livroEmprestado = await Emprestimo.findOne({ livroId: id, status: 'emprestado' });
-        if (livroEmprestado) {
-            return res.status(400).json({ error: 'O livro não pode ser removido, pois está emprestado' });
-        }
-
-        const livroRemovido = await Livro.findByIdAndDelete(id);
+        const query = isNaN(termo) ? { titulo: termo } : { isbn: termo };
+        const livroRemovido = await Livro.findOneAndDelete(query);
         if (!livroRemovido) {
+            logger.warn(`Livro não encontrado para remoção: ${termo}`);
             return res.status(404).json({ error: 'Livro não encontrado' });
         }
-
+        logger.info(`Livro removido: ${livroRemovido.titulo} (${livroRemovido.isbn})`);
         res.status(200).json({ message: 'Livro removido com sucesso!' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao remover livro' });
+        logger.error('Erro ao remover livro:', error);
+        next(error);
     }
 };
