@@ -103,19 +103,23 @@ exports.obterEstante = async (req, res) => {
     }
 };
 
-// Adicionar livro à estante (rota protegida)
-exports.adicionarLivroEstante = async (req, res) => {
+// Função para adicionar livro à estante
+esxports.adicionarLivroEstante = async (req, res) => {
+    const { livroId, titulo, status } = req.body;
     try {
-        const usuarioId = req.usuarioId;
-        const { livroId, status, avaliacao, quote } = req.body;
+        const usuario = await Usuario.findById(req.usuarioId); // Pega o ID do usuário da requisição
 
-        const usuario = await Usuario.findById(usuarioId);
-        usuario.estante.push({ livroId, status, avaliacao, quote });
+        if (status === 'doacao') {
+            usuario.estante.doacoes.push({ livroId, titulo, dataDoacao: new Date() });
+        } else if (status === 'emprestimo') {
+            usuario.estante.emprestimos.push({ livroId, titulo, dataEmprestimo: new Date(), dataDevolucao: null });
+        }
+
         await usuario.save();
-
-        res.status(201).json({ message: 'Livro adicionado à estante!' });
+        res.status(200).json({ message: 'Livro adicionado à estante com sucesso!' });
     } catch (error) {
-        res.status(400).json({ error: 'Erro ao adicionar livro' });
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao adicionar livro à estante' });
     }
 };
 

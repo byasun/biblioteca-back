@@ -12,7 +12,13 @@ const autenticarUsuario = (req, res, next) => {
         req.usuarioId = decoded.id;
         next();
     } catch (error) {
-        res.status(400).json({ error: 'Token inválido!' });
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expirado! Faça login novamente.' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(400).json({ error: 'Token inválido!' });
+        }
+        return res.status(500).json({ error: 'Erro interno no servidor!' });
     }
 };
 
