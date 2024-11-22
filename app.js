@@ -5,6 +5,8 @@ const livroRoutes = require('./routes/livroRoutes');
 const cors = require('cors');
 const logger = require('./utils/loggers');
 const errorHandler = require('./middleware/errorHandler');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -15,12 +17,26 @@ conectarDB()
 
 // Middleware
 app.options('*', cors());
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }));
 app.use(express.json()); // Substitui o bodyParser.json()
 app.use((req, res, next) => {
     logger.info(`Requisição recebida: ${req.method} ${req.url}`);
     next();
 });
+app.use(cookieParser());
+app.use(session({
+  secret: process.env.JWT_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // HTTPS em produção
+    httpOnly: true, // Apenas acessível pelo servidor
+    sameSite: 'strict', // Previne CSRF
+  },
+}));
 
 // Rotas
 app.use('/usuarios', usuarioRoutes);
