@@ -18,9 +18,11 @@ conectarDB()
 // Middleware
 app.options('*', cors());
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-  }));
+  origin: process.env.FRONTEND_URL, // Permitir apenas esse domínio
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Permitir o envio de cookies
+}));
 app.use(express.json()); // Substitui o bodyParser.json()
 app.use((req, res, next) => {
     logger.info(`Requisição recebida: ${req.method} ${req.url}`);
@@ -34,7 +36,7 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production', // HTTPS em produção
     httpOnly: true, // Apenas acessível pelo servidor
-    sameSite: 'strict', // Previne CSRF
+    sameSite: 'None', // Permitir o envio de cookies entre origens diferentes
   },
 }));
 
