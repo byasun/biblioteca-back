@@ -2,7 +2,6 @@ const express = require('express');
 const conectarDB = require('./config/db');
 const usuarioRoutes = require('./routes/usuarioRoutes');
 const livroRoutes = require('./routes/livroRoutes');
-/**const bodyParser = require('body-parser'); */
 const cors = require('cors');
 const logger = require('./utils/loggers');
 const errorHandler = require('./middleware/errorHandler');
@@ -24,8 +23,8 @@ app.use((req, res, next) => {
 });
 
 // Rotas
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/livros', livroRoutes);
+app.use('/usuarios', usuarioRoutes);
+app.use('/livros', livroRoutes);
 
 // Rota inicial
 app.get('/', (req, res) => {
