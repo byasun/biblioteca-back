@@ -4,29 +4,36 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 exports.cadastrarUsuario = async (req, res, next) => {
-    const { nome, email, senha, chave = null } = req.body; // Valor padrão para chave
+    const { nome, email, senha, chave = null } = req.body;
+
+    console.log('Dados recebidos para cadastro:', req.body); // Log dos dados recebidos
 
     try {
         // Verificar se o e-mail já está cadastrado
+        console.log('Verificando se o e-mail já está cadastrado:', email);
         const usuarioExistente = await Usuario.findOne({ email });
         if (usuarioExistente) {
+            console.log('Email já cadastrado:', email); // Log se o email já existe
             return res.status(400).json({ error: 'Email já cadastrado.' });
         }
 
-        // Validar a senha (se estiver vazia ou com menos de 6 caracteres)
+        // Validar a senha
+        console.log('Validando a senha:', senha);
         if (!senha || senha.length < 6) {
+            console.log('Senha inválida:', senha); // Log da senha inválida
             return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres.' });
         }
 
         // Criptografar a senha
         const senhaCriptografada = await bcrypt.hash(senha, 10);
+        console.log('Senha criptografada com sucesso.');
 
         // Criar novo usuário
         const novoUsuario = new Usuario({
             nome,
             email,
             senha: senhaCriptografada,
-            chave, // Campo tratado mesmo que seja null
+            chave,
             estante: {
                 doacoes: [],
                 emprestimos: [],
@@ -36,7 +43,9 @@ exports.cadastrarUsuario = async (req, res, next) => {
         });
 
         // Salvar no banco de dados
+        console.log('Salvando novo usuário no banco de dados...');
         const usuarioSalvo = await novoUsuario.save();
+        console.log('Usuário salvo com sucesso:', usuarioSalvo);
 
         // Logar informações do cadastro
         logger.info(`Usuário cadastrado: ${nome} (${email})`);
@@ -54,7 +63,8 @@ exports.cadastrarUsuario = async (req, res, next) => {
     } catch (error) {
         // Logar erro de cadastro
         logger.error('Erro ao cadastrar usuário:', error);
-        next(error); // Passa o erro para o middleware de erro
+        res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
+        next(error);
     }
 };
 
