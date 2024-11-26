@@ -3,69 +3,61 @@ const logger = require('../utils/loggers');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-exports.cadastrarUsuario = async (req, res, next) => {
+exports.cadastrarUsuario = async (req, res) => {
     const { nome, email, senha, chave = null } = req.body;
-
-    console.log('Dados recebidos para cadastro:', req.body); // Log dos dados recebidos
-
+  
+    logger.info('Dados recebidos para cadastro:', req.body);
+  
     try {
-        // Verificar se o e-mail já está cadastrado
-        console.log('Verificando se o e-mail já está cadastrado:', email);
-        const usuarioExistente = await Usuario.findOne({ email });
-        if (usuarioExistente) {
-            console.log('Email já cadastrado:', email); // Log se o email já existe
-            return res.status(400).json({ error: 'Email já cadastrado.' });
-        }
-
-        // Validar a senha
-        console.log('Validando a senha:', senha);
-        if (!senha || senha.length < 6) {
-            console.log('Senha inválida:', senha); // Log da senha inválida
-            return res.status(400).json({ error: 'Senha deve ter pelo menos 6 caracteres.' });
-        }
-
-        // Criptografar a senha
-        const senhaCriptografada = await bcrypt.hash(senha, 10);
-        console.log('Senha criptografada com sucesso.');
-
-        // Criar novo usuário
-        const novoUsuario = new Usuario({
-            nome,
-            email,
-            senha: senhaCriptografada,
-            chave,
-            estante: {
-                doacoes: [],
-                emprestimos: [],
-                avaliacoes: [],
-                quotes: []
-            }
-        });
-
-        // Salvar no banco de dados
-        console.log('Salvando novo usuário no banco de dados...');
-        const usuarioSalvo = await novoUsuario.save();
-        console.log('Usuário salvo com sucesso:', usuarioSalvo);
-
-        // Logar informações do cadastro
-        logger.info(`Usuário cadastrado: ${nome} (${email})`);
-
-        // Enviar resposta de sucesso
-        res.status(201).json({
-            message: 'Usuário cadastrado com sucesso!',
-            usuario: {
-                id: usuarioSalvo._id,
-                nome: usuarioSalvo.nome,
-                email: usuarioSalvo.email,
-            },
-        });        
+      // Verificar se o e-mail já existe
+      const usuarioExistente = await Usuario.findOne({ email });
+      if (usuarioExistente) {
+        logger.warn(`Tentativa de cadastro com e-mail já existente: ${email}`);
+        return res.status(400).json({ error: 'Email já cadastrado.' });
+      }
+  
+      // Validar senha
+      if (!senha || senha.length < 6) {
+        logger.warn('Senha inválida recebida para cadastro.');
+        return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres.' });
+      }
+  
+      // Criptografar senha
+      const senhaCriptografada = await bcrypt.hash(senha, 10);
+  
+      // Criar novo usuário
+      const novoUsuario = new Usuario({
+        nome,
+        email,
+        senha: senhaCriptografada,
+        chave,
+        estante: {
+          doacoes: [],
+          emprestimos: [],
+          avaliacoes: [],
+          quotes: [],
+        },
+      });
+  
+      // Salvar no banco de dados
+      const usuarioSalvo = await novoUsuario.save();
+  
+      logger.info(`Usuário cadastrado com sucesso: ${usuarioSalvo.email}`);
+  
+      res.status(201).json({
+        message: 'Usuário cadastrado com sucesso!',
+        usuario: {
+          id: usuarioSalvo._id,
+          nome: usuarioSalvo.nome,
+          email: usuarioSalvo.email,
+          chave: usuarioSalvo.chave,
+        },
+      });
     } catch (error) {
-        // Logar erro de cadastro
-        logger.error('Erro ao cadastrar usuário:', error);
-        res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
-        next(error);
+      logger.error('Erro ao cadastrar usuário:', error);
+      res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
     }
-};
+  };
 
 exports.buscarUsuarioPorEmail = async (req, res, next) => {
     const { email } = req.params;
