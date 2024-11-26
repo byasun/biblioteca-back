@@ -1,6 +1,6 @@
 const express = require('express');
 const conectarDB = require('./config/db');
-const routes = require('./routes/index.js');
+const routes = require('./routes/index.js'); 
 const cors = require('cors');
 const logger = require('./utils/loggers.js');
 const errorHandler = require('./middleware/errorHandler');
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rotas
+// Rotas principais (usando o roteador principal)
 app.use('/api', routes);
 
 // Rota inicial
@@ -51,8 +51,25 @@ app.get('/', (req, res) => {
   res.send('API da Biblioteca Comunitária');
 });
 
+// Middleware para rotas não encontradas (aplicado após as rotas principais)
+app.use((req, res) => {
+  const message = `Rota não encontrada: ${req.method} ${req.originalUrl}`;
+  logger.warn(message);
+
+  res.status(404).json({
+    error: 'Rota não encontrada',
+    method: req.method,
+    path: req.originalUrl,
+  });
+});
+
 // Middleware de tratamento de erros (deve ser o último)
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+  logger.error(`Erro na rota ${req.method} ${req.originalUrl}: ${err.message}`);
+  res.status(err.status || 500).json({
+    error: err.message || 'Erro interno no servidor',
+  });
+});
 
 // Exporta o aplicativo
 module.exports = app;
