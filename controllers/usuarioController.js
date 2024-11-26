@@ -57,9 +57,8 @@ exports.cadastrarUsuario = async (req, res, next) => {
                 id: usuarioSalvo._id,
                 nome: usuarioSalvo.nome,
                 email: usuarioSalvo.email,
-                chave: usuarioSalvo.chave
-            }
-        });
+            },
+        });        
     } catch (error) {
         // Logar erro de cadastro
         logger.error('Erro ao cadastrar usuário:', error);
