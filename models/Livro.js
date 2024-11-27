@@ -19,8 +19,8 @@ const livroSchema = new mongoose.Schema({
     },
     isbn: {
         type: String,
-        required: true,   // O ISBN é obrigatório agora
-        unique: true      // Garante que o ISBN seja único
+        required: true,
+        unique: true
     },
     emprestado: {
         type: Boolean,

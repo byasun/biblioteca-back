@@ -57,66 +57,68 @@ exports.cadastrarUsuario = async (req, res) => {
       logger.error('Erro ao cadastrar usuário:', error);
       res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
     }
-  };
-
+};
 exports.buscarUsuarioPorEmail = async (req, res, next) => {
     const { email } = req.params;
     try {
-        const usuario = await Usuario.findOne({ email });
-        if (!usuario) {
-            logger.warn(`Usuário não encontrado: ${email}`);
-            return res.status(404).json({ error: 'Usuário não encontrado' });
-        }
-        logger.info(`Usuário encontrado: ${usuario.nome} (${email})`);
-        res.status(200).json(usuario);
+      const usuario = await Usuario.findOne({ email });
+      if (!usuario) {
+        logger.warn(`Usuário não encontrado: ${email}`);
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+      logger.info(`Usuário encontrado: ${usuario.nome} (${email})`);
+      res.status(200).json(usuario);
     } catch (error) {
-        logger.error('Erro ao buscar usuário:', error);
-        next(error);
+      logger.error('Erro ao buscar usuário:', error);
+      next(error);
     }
 };
 
 exports.atualizarUsuarioPorEmail = async (req, res, next) => {
-    const { email } = req.params;
-    const { nome, senha } = req.body;
+  const { email } = req.params;
+  const { nome, senha, chave } = req.body;
 
-    try {
-        // Atualizar a senha, caso fornecida
-        const updates = { nome };
-        if (senha) {
-            updates.senha = await bcrypt.hash(senha, 10);
-        }
-
-        const usuarioAtualizado = await Usuario.findOneAndUpdate(
-            { email },
-            updates,
-            { new: true }
-        );
-        if (!usuarioAtualizado) {
-            logger.warn(`Usuário não encontrado para atualização: ${email}`);
-            return res.status(404).json({ error: 'Usuário não encontrado' });
-        }
-
-        logger.info(`Usuário atualizado: ${usuarioAtualizado.nome} (${email})`);
-        res.status(200).json({ message: 'Usuário atualizado com sucesso!', usuario: usuarioAtualizado });
-    } catch (error) {
-        logger.error('Erro ao atualizar usuário:', error);
-        next(error);
+  try {
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) {
+      logger.warn(`Usuário não encontrado para atualização: ${email}`);
+      return res.status(404).json({ error: 'Usuário não encontrado' });
     }
+
+    if (senha) {
+      usuario.senha = await bcrypt.hash(senha, 10);
+    }
+    if (nome) {
+      usuario.nome = nome;
+    }
+    if (chave) {
+      usuario.chave = chave;
+    }
+
+    const usuarioAtualizado = await usuario.save();
+    logger.info(`Usuário atualizado: ${usuarioAtualizado.nome} (${email})`);
+    res.status(200).json({ message: 'Usuário atualizado com sucesso!', usuario: usuarioAtualizado });
+  } catch (error) {
+    logger.error('Erro ao atualizar usuário:', error);
+    res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
+  }
 };
 
 exports.removerUsuarioPorEmail = async (req, res, next) => {
     const { email } = req.params;
+  
     try {
-        const usuarioRemovido = await Usuario.findOneAndDelete({ email });
-        if (!usuarioRemovido) {
-            logger.warn(`Usuário não encontrado para remoção: ${email}`);
-            return res.status(404).json({ error: 'Usuário não encontrado' });
-        }
-        logger.info(`Usuário removido: ${usuarioRemovido.nome} (${email})`);
-        res.status(200).json({ message: 'Usuário removido com sucesso!' });
+      const usuario = await Usuario.findOneAndDelete({ email });
+      if (!usuario) {
+        logger.warn(`Usuário não encontrado para remoção: ${email}`);
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+  
+      logger.info(`Usuário removido: ${usuario.nome} (${email})`);
+      res.status(200).json({ message: 'Usuário removido com sucesso!', usuario });
     } catch (error) {
-        logger.error('Erro ao remover usuário:', error);
-        next(error);
+      logger.error('Erro ao remover usuário:', error);
+      res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
     }
 };
 
