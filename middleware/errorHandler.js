@@ -2,26 +2,18 @@ const logger = require('../utils/loggers');
 
 const errorHandler = (err, req, res, next) => {
     const statusCode = err.status || 500;
-
-    // Log do erro completo
+  
     logger.error('Erro capturado:', {
-        message: err.message,
-        stack: err.stack,
-        path: req.path,
-        method: req.method,
+      message: err.message,
+      stack: err.stack,
+      method: req.method,
+      path: req.originalUrl,
     });
-
-    // Resposta adequada ao ambiente
-    if (process.env.NODE_ENV === 'development') {
-        // Detalhes completos no ambiente de desenvolvimento
-        res.status(statusCode).json({
-            error: err.message,
-            stack: err.stack,
-        });
-    } else {
-        // Mensagem genérica no ambiente de produção
-        res.status(statusCode).json({ error: 'Algo deu errado!' });
-    }
-};
-
-module.exports = errorHandler;
+  
+    res.status(statusCode).json({
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno no servidor.',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    });
+  };
+  
+  module.exports = errorHandler;

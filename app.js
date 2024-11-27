@@ -1,39 +1,75 @@
 const express = require('express');
 const conectarDB = require('./config/db');
-const usuarioRoutes = require('./routes/usuarioRoutes');
-const livroRoutes = require('./routes/livroRoutes');
-/**const bodyParser = require('body-parser'); */
+const routes = require('./routes/index.js'); 
 const cors = require('cors');
-const logger = require('./utils/loggers');
+const logger = require('./utils/loggers.js');
 const errorHandler = require('./middleware/errorHandler');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
-// Conectar ao banco de dados
-conectarDB()
-    .then(() => logger.info('Banco de dados conectado com sucesso.'))
-    .catch((err) => logger.error('Erro ao conectar ao banco de dados:', { message: err.message }));
+// Middleware de parsing do JSON
+app.use(express.json());
 
-// Middleware
-app.options('*', cors());
-app.use(cors());
-app.use(express.json()); // Substitui o bodyParser.json()
+// Middleware de cookies e sessões
+app.use(cookieParser());
+app.use(
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // HTTPS em produção
+      httpOnly: true, // Apenas acessível pelo servidor
+      sameSite: 'None', // Permitir o envio de cookies entre origens diferentes
+    },
+  })
+);
+
+// Configuração de CORS
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// Middleware de log de requisições
 app.use((req, res, next) => {
-    logger.info(`Requisição recebida: ${req.method} ${req.url}`);
-    next();
+  logger.info(`Requisição recebida: ${req.method} ${req.url}`);
+  next();
 });
 
-// Rotas
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/livros', livroRoutes);
+// Rotas principais (usando o roteador principal)
+app.use('/api', routes);
 
 // Rota inicial
 app.get('/', (req, res) => {
-    logger.info('Rota inicial acessada.');
-    res.send('API da Biblioteca Comunitária');
+  logger.info('Rota inicial acessada.');
+  res.send('API da Biblioteca Comunitária');
 });
 
-// Middleware de tratamento de erros
-app.use(errorHandler);
+// Middleware para rotas não encontradas (aplicado após as rotas principais)
+app.use((req, res) => {
+  const message = `Rota não encontrada: ${req.method} ${req.originalUrl}`;
+  logger.warn(message);
 
+  res.status(404).json({
+    error: 'Rota não encontrada',
+    method: req.method,
+    path: req.originalUrl,
+  });
+});
+
+// Middleware de tratamento de erros (deve ser o último)
+app.use((err, req, res, next) => {
+  logger.error(`Erro na rota ${req.method} ${req.originalUrl}: ${err.message}`);
+  res.status(err.status || 500).json({
+    error: err.message || 'Erro interno no servidor',
+  });
+});
+
+// Exporta o aplicativo
 module.exports = app;

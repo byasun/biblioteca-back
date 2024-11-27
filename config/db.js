@@ -1,17 +1,19 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/loggers');
 
 const conectarDB = async () => {
     try {
-        console.log('Tentando conectar ao MongoDB...');
-        await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
-        console.log('Conexão com o MongoDB estabelecida com sucesso!');
+      await mongoose.connect(process.env.MONGO_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      logger.info('Conexão com o MongoDB estabelecida com sucesso.');
     } catch (error) {
-        console.error('Erro ao conectar com o MongoDB:', error.message);
-        process.exit(1);
+      logger.error('Erro ao conectar ao MongoDB:', error);
+      process.exit(1);
     }
-};
-
+  };
+  
+  mongoose.set('debug', process.env.NODE_ENV === 'development');
+  
 module.exports = conectarDB;
