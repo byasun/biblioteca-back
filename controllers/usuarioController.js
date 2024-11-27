@@ -58,7 +58,6 @@ exports.cadastrarUsuario = async (req, res) => {
       res.status(500).json({ error: 'Erro no servidor. Tente novamente mais tarde.' });
     }
 };
-
 exports.buscarUsuarioPorEmail = async (req, res, next) => {
     const { email } = req.params;
     try {

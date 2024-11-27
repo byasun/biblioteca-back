@@ -47,7 +47,6 @@ const usuarioSchema = new mongoose.Schema({
         }]
     }
 });
-
 usuarioSchema.pre('save', async function(next) {
     if (this.isModified('senha')) {
         this.senha = await bcrypt.hash(this.senha, 10);
