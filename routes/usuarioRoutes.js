@@ -15,4 +15,7 @@ router.put('/atualizar/:email', usuarioController.atualizarUsuarioPorEmail);
 // Rota para remover usuário por email
 router.delete('/remover/:email', usuarioController.removerUsuarioPorEmail);
 
+// Rota para login de usuário
+router.post('/login', usuarioController.loginUsuario);
+
 module.exports = router;
