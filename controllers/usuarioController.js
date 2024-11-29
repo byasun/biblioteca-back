@@ -24,9 +24,6 @@ exports.cadastrarUsuario = async (req, res) => {
         .json({ error: "A senha deve ter pelo menos 6 caracteres." });
     }
 
-    // Criptografar senha
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
-
     // Criar novo usuário
     const novoUsuario = new Usuario({
       nome,
