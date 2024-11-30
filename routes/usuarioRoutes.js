@@ -4,10 +4,7 @@ const usuarioController = require('../controllers/usuarioController');
 const router = express.Router();
 
 // Rota para cadastrar usuário
-router.post('/cadastrar', (req, res) => {
-    console.log('Requisição recebida:', req.body);  // Verifique o corpo da requisição
-    usuarioController.cadastrarUsuario(req, res);
-  });
+router.post('/cadastrar', usuarioController.cadastrarUsuario);
   
 // Rota para buscar usuário por email
 router.get('/buscar/:email', usuarioController.buscarUsuarioPorEmail);
