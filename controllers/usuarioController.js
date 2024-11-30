@@ -28,7 +28,7 @@ exports.cadastrarUsuario = async (req, res) => {
     const novoUsuario = new Usuario({
       nome,
       email,
-      senha: senhaCriptografada,
+      senha,
       chave,
       estante: {
         doacoes: [],
@@ -59,6 +59,7 @@ exports.cadastrarUsuario = async (req, res) => {
       .json({ error: "Erro no servidor. Tente novamente mais tarde." });
   }
 };
+
 exports.buscarUsuarioPorEmail = async (req, res, next) => {
   const { email } = req.params;
   try {
