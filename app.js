@@ -30,7 +30,7 @@ app.use(
 
 // Configuração de CORS
 const corsOptions = {
-  origin: FRONTEND_URL, // Certifique-se de que isso esteja correto
+  origin: process.env.FRONTEND_URL || '*', // Certifique-se de que isso esteja correto
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
