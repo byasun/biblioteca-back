@@ -28,14 +28,17 @@ app.use(
   })
 );
 
-// Configuração de CORS
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*', // Certifique-se de que isso esteja correto
+  origin: process.env.CORS_ORIGIN,  // Usando a variável de ambiente
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  credentials: true,  // Permite enviar cookies/autenticação
 };
+
 app.use(cors(corsOptions));
+
+// Responde a requisições OPTIONS
+app.options('*', cors(corsOptions));
 
 // Middleware de log de requisições
 app.use((req, res, next) => {
