@@ -28,17 +28,25 @@ app.use(
   })
 );
 
+// Configuração de opções do CORS
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN,  // Usando a variável de ambiente
+  origin:"*",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,  // Permite enviar cookies/autenticação
+  credentials: true, // Permite cookies/autenticação
 };
 
+// Middleware para habilitar CORS
 app.use(cors(corsOptions));
 
-// Responde a requisições OPTIONS
-app.options('*', cors(corsOptions));
+// Tratamento especial para requisições preflight (OPTIONS)
+app.options('*', cors(corsOptions), (req, res) => {
+  res.sendStatus(204); // Responde com sucesso sem conteúdo
+});
+
+// Adicione mais middleware ou rotas depois desta configuração
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Middleware de log de requisições
 app.use((req, res, next) => {
