@@ -28,21 +28,14 @@ app.use(
   })
 );
 
-// Configuração de opções do CORS
 const corsOptions = {
-  origin:"*",
+  origin: process.env.FRONTEND_URL || '*', // Domínio do frontend ou qualquer origem
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Permite cookies/autenticação
+  credentials: true, // Permite envio de cookies/autenticação
 };
 
-// Middleware para habilitar CORS
 app.use(cors(corsOptions));
-
-// Tratamento especial para requisições preflight (OPTIONS)
-app.options('*', cors(corsOptions), (req, res) => {
-  res.sendStatus(204); // Responde com sucesso sem conteúdo
-});
 
 // Adicione mais middleware ou rotas depois desta configuração
 app.use(express.json());
