@@ -29,13 +29,14 @@ app.use(
 );
 
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*', // Domínio do frontend ou qualquer origem
+  origin: FRONTEND_URL, // Domínio do frontend ou qualquer origem
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // Permite envio de cookies/autenticação
 };
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // Middleware do CORS
+app.options('*', cors(corsOptions));
 
 // Adicione mais middleware ou rotas depois desta configuração
 app.use(express.json());
