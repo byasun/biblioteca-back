@@ -6,25 +6,21 @@ const bcrypt = require("bcryptjs");
 exports.cadastrarUsuario = async (req, res) => {
   const { nome, email, senha, chave = null } = req.body;
 
-  logger.info("Dados recebidos para cadastro:", req.body);
-
   try {
     // Verificar se o e-mail já existe
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
-      logger.warn(`Tentativa de cadastro com e-mail já existente: ${email}`);
       return res.status(400).json({ error: "Email já cadastrado." });
     }
 
     // Validar senha
     if (!senha || senha.length < 6) {
-      logger.warn("Senha inválida recebida para cadastro.");
       return res
         .status(400)
         .json({ error: "A senha deve ter pelo menos 6 caracteres." });
     }
 
-    // Criar novo usuário
+    // Criar novo usuário (sem hashear manualmente a senha)
     const novoUsuario = new Usuario({
       nome,
       email,
@@ -41,8 +37,6 @@ exports.cadastrarUsuario = async (req, res) => {
     // Salvar no banco de dados
     const usuarioSalvo = await novoUsuario.save();
 
-    logger.info(`Usuário cadastrado com sucesso: ${usuarioSalvo.email}`);
-
     res.status(201).json({
       message: "Usuário cadastrado com sucesso!",
       usuario: {
@@ -53,7 +47,7 @@ exports.cadastrarUsuario = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error("Erro ao cadastrar usuário:", error);
+    console.error("Erro ao cadastrar usuário:", error);
     res
       .status(500)
       .json({ error: "Erro no servidor. Tente novamente mais tarde." });
@@ -83,12 +77,12 @@ exports.atualizarUsuarioPorEmail = async (req, res, next) => {
   try {
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
-      logger.warn(`Usuário não encontrado para atualização: ${email}`);
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
+    // Atualizar somente os campos necessários
     if (senha) {
-      usuario.senha = await bcrypt.hash(senha, 10);
+      usuario.senha = senha; // Deixe o `pre('save')` cuidar do hash
     }
     if (nome) {
       usuario.nome = nome;
@@ -98,15 +92,12 @@ exports.atualizarUsuarioPorEmail = async (req, res, next) => {
     }
 
     const usuarioAtualizado = await usuario.save();
-    logger.info(`Usuário atualizado: ${usuarioAtualizado.nome} (${email})`);
-    res
-      .status(200)
-      .json({
-        message: "Usuário atualizado com sucesso!",
-        usuario: usuarioAtualizado,
-      });
+    res.status(200).json({
+      message: "Usuário atualizado com sucesso!",
+      usuario: usuarioAtualizado,
+    });
   } catch (error) {
-    logger.error("Erro ao atualizar usuário:", error);
+    console.error("Erro ao atualizar usuário:", error);
     res
       .status(500)
       .json({ error: "Erro no servidor. Tente novamente mais tarde." });

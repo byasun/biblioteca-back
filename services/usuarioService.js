@@ -11,14 +11,11 @@ const registrarUsuario = async (dados) => {
         throw new Error('Email já cadastrado.');
     }
 
-    // Hash da senha antes de salvar no banco de dados
-    const senhaHashada = await bcrypt.hash(senha, 10);
-
-    // Criar um novo usuário
+    // Criar um novo usuário (não hasheie a senha manualmente aqui)
     const novoUsuario = new Usuario({
         nome,
         email,
-        senha: senhaHashada,
+        senha, // O hash será tratado pelo `pre('save')` no schema
         chave,
     });
 
@@ -31,6 +28,7 @@ const loginUsuario = async (email, senha) => {
         throw new Error('Usuário não encontrado');
     }
 
+    // Comparar a senha com o hash armazenado no banco
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
         throw new Error('Senha inválida');
