@@ -2,9 +2,8 @@ const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 
 const authMiddleware = (req, res, next) => {
-    // Extrair o token do cabeçalho Authorization, removendo o 'Bearer ' se presente
     const token = req.header('Authorization') && req.header('Authorization').split(' ')[1];
-    
+
     if (!token) {
         logger.warn('Token de autenticação não fornecido.');
         return res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
