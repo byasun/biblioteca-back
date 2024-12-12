@@ -82,3 +82,111 @@ exports.removerLivroPorNomeOuISBN = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.doarLivro = async (req, res, next) => {
+    const { titulo, autor, genero, descricao, isbn } = req.body;
+    try {
+        const livroExistente = await Livro.findOne({ isbn });
+        if (livroExistente) {
+            return res.status(400).json({ error: 'Este livro já está cadastrado.' });
+        }
+        
+        const novoLivro = new Livro({ titulo, autor, genero, descricao, isbn });
+        await novoLivro.save();
+        logger.info(`Livro doado e cadastrado: ${titulo} (${isbn})`);
+        res.status(201).json({ message: 'Livro doado com sucesso!', livro: novoLivro });
+    } catch (error) {
+        logger.error('Erro ao doar livro:', error);
+        next(error);
+    }
+};
+
+exports.pegarLivro = async (req, res, next) => {
+    const { livroId, usuarioId } = req.body;
+    try {
+        const livro = await Livro.findById(livroId);
+        if (!livro) {
+            return res.status(404).json({ error: 'Livro não encontrado.' });
+        }
+        if (livro.emprestado) {
+            return res.status(400).json({ error: 'O livro já está emprestado.' });
+        }
+
+        const novoEmprestimo = new Emprestimo({ livroId, usuarioId, status: 'emprestado' });
+        await novoEmprestimo.save();
+        livro.emprestado = true;
+        await livro.save();
+
+        logger.info(`Livro emprestado: ${livro.titulo} para usuário ${usuarioId}`);
+        res.status(201).json({ message: 'Livro emprestado com sucesso!', emprestimo: novoEmprestimo });
+    } catch (error) {
+        logger.error('Erro ao pegar livro:', error);
+        next(error);
+    }
+};
+
+exports.devolverLivro = async (req, res, next) => {
+    const { emprestimoId } = req.body;
+    try {
+        const emprestimo = await Emprestimo.findById(emprestimoId);
+        if (!emprestimo || emprestimo.status === 'disponivel') {
+            return res.status(400).json({ error: 'O empréstimo não é válido ou o livro já foi devolvido.' });
+        }
+
+        const livro = await Livro.findById(emprestimo.livroId);
+        if (!livro) {
+            return res.status(404).json({ error: 'Livro não encontrado.' });
+        }
+
+        emprestimo.status = 'disponivel';
+        emprestimo.dataDevolucao = new Date();
+        await emprestimo.save();
+
+        livro.emprestado = false;
+        await livro.save();
+
+        logger.info(`Livro devolvido: ${livro.titulo}`);
+        res.status(200).json({ message: 'Livro devolvido com sucesso!' });
+    } catch (error) {
+        logger.error('Erro ao devolver livro:', error);
+        next(error);
+    }
+};
+
+exports.avaliarLivro = async (req, res, next) => {
+    const { livroId, usuarioId, nota, comentario } = req.body;
+    try {
+        const livro = await Livro.findById(livroId);
+        if (!livro) {
+            return res.status(404).json({ error: 'Livro não encontrado.' });
+        }
+
+        livro.avaliacoes.push({ usuarioId, nota, comentario });
+        await livro.save();
+
+        logger.info(`Livro avaliado: ${livro.titulo} por usuário ${usuarioId}`);
+        res.status(201).json({ message: 'Avaliação registrada com sucesso!', livro });
+    } catch (error) {
+        logger.error('Erro ao avaliar livro:', error);
+        next(error);
+    }
+};
+
+exports.adicionarQuote = async (req, res, next) => {
+    const { livroId, usuarioId, texto } = req.body;
+    try {
+        const livro = await Livro.findById(livroId);
+        if (!livro) {
+            return res.status(404).json({ error: 'Livro não encontrado.' });
+        }
+
+        livro.quotes.push({ usuarioId, texto });
+        await livro.save();
+
+        logger.info(`Quote adicionada ao livro: ${livro.titulo}`);
+        res.status(201).json({ message: 'Quote adicionada com sucesso!', livro });
+    } catch (error) {
+        logger.error('Erro ao adicionar quote:', error);
+        next(error);
+    }
+};
