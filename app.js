@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'chave-secreta',
+    secret: process.env.JWT_SECRET || 'chave-secreta',
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
