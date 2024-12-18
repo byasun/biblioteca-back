@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const logger = require('./logger');
+const logger = require('./loggers');
 const blacklist = new Set();
 
 exports.addToBlacklist = (token) => {
