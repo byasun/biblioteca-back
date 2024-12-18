@@ -6,6 +6,7 @@ const logger = require('./utils/loggers.js');
 const errorHandler = require('./middleware/errorHandler');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const MongoStore = require('connect-mongo');
 
 const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL || '*';
@@ -17,13 +18,17 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   session({
-    secret: process.env.JWT_SECRET,
+    secret: process.env.SESSION_SECRET || 'chave-secreta',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      ttl: 24 * 60 * 60, // Sessão expira em 24 horas
+    }),
     cookie: {
       secure: process.env.NODE_ENV === 'production', // HTTPS em produção
-      httpOnly: true, // Apenas acessível pelo servidor
-      sameSite: 'None', // Permitir envio de cookies entre origens diferentes
+      httpOnly: true,
+      sameSite: 'lax',
     },
   })
 );

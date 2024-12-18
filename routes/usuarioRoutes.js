@@ -18,4 +18,7 @@ router.delete('/remover/:email', usuarioController.removerUsuarioPorEmail);
 // Rota para login de usuário
 router.post('/login', usuarioController.loginUsuario);
 
+// Rota para logout do usuário
+router.post('/logout', usuarioController.logoutUsuario);
+
 module.exports = router;

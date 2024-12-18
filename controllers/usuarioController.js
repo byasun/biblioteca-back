@@ -2,6 +2,7 @@ const Usuario = require("../models/Usuario");
 const logger = require("../utils/loggers");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { addToBlacklist } = require('../utils/jwtHelper');
 
 exports.cadastrarUsuario = async (req, res) => {
   const { nome, email, senha, chave = null } = req.body;
@@ -124,51 +125,42 @@ exports.removerUsuarioPorEmail = async (req, res, next) => {
   }
 };
 
-exports.loginUsuario = async (req, res, next) => {
-  console.log("Recebida requisição de login:", req.method, req.originalUrl);
-  console.log("Body recebido:", req.body);
-
+exports.loginUsuario = async (req, res) => {
   try {
-    const { email, password } = req.body;
+      const { email, password } = req.body;
 
-    if (!email || !password) {
-      console.warn("Campos obrigatórios ausentes.");
-      return res.status(400).json({ error: "Email e senha são obrigatórios." });
-    }
+      if (!email || !password) {
+          return res.status(400).json({ error: "Email e senha são obrigatórios." });
+      }
 
-    const usuario = await Usuario.findOne({ email });
+      const usuario = await Usuario.findOne({ email });
 
-    if (!usuario) {
-      console.warn(`Usuário não encontrado para email: ${email}`);
-      return res.status(404).json({ error: "Email ou senha inválidos." });
-    }
+      if (!usuario || !(await bcrypt.compare(password.trim(), usuario.senha))) {
+          return res.status(400).json({ error: "Email ou senha inválidos." });
+      }
 
-    const senhaValida = await bcrypt.compare(password.trim(), usuario.senha);
-    if (!senhaValida) {
-      console.warn("Senha inválida fornecida.");
-      return res.status(400).json({ error: "Email ou senha inválidos." });
-    }
+      req.session.user = {
+          id: usuario._id,
+          nome: usuario.nome,
+          email: usuario.email,
+      };
 
-    const token = jwt.sign(
-      { email: usuario.email, id: usuario._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    console.log("Login bem-sucedido para:", usuario.email);
-
-    res.status(200).json({
-      message: "Login realizado com sucesso!",
-      token,
-      user: {
-        id: usuario._id,
-        nome: usuario.nome,
-        email: usuario.email,
-        estante: usuario.estante,
-      },
-    });
+      res.status(200).json({
+          message: "Login realizado com sucesso!",
+          user: req.session.user,
+      });
   } catch (error) {
-    console.error("Erro ao processar login:", error);
-    next(error);
+      console.error("Erro ao processar login:", error);
+      res.status(500).json({ error: "Erro no servidor. Tente novamente mais tarde." });
   }
+};
+
+exports.logoutUsuario = (req, res) => {
+  req.session.destroy((err) => {
+      if (err) {
+          return res.status(500).json({ error: "Erro ao encerrar a sessão." });
+      }
+      res.clearCookie("connect.sid");
+      res.status(200).json({ message: "Logout realizado com sucesso." });
+  });
 };
