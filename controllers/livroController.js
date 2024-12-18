@@ -1,5 +1,5 @@
 const Livro = require('../models/Livro');
-const logger = require('../utils/loggers');
+const logger = require('../utils/logger');
 
 exports.cadastrarLivro = async (req, res, next) => {
     const { titulo, autor, genero, descricao, isbn } = req.body;

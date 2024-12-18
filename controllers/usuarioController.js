@@ -1,8 +1,9 @@
 const Usuario = require("../models/Usuario");
-const logger = require("../utils/loggers");
+const logger = require("../utils/logger");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { addToBlacklist } = require('../utils/jwtHelper');
+const logger = require('../utils/logger');
 
 exports.cadastrarUsuario = async (req, res) => {
   const { nome, email, senha, chave = null } = req.body;

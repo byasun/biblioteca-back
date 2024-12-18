@@ -1,7 +1,7 @@
 const express = require('express');
 const usuarioRoutes = require('./usuarioRoutes');
 const livroRoutes = require('./livroRoutes');
-const logger = require('../utils/loggers');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
