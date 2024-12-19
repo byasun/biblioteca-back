@@ -5,7 +5,10 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "dev": "nodemon server.js"
+        "dev": "nodemon server.js",
+        "install": "yarn install", 
+        "build": "yarn build",     
+        "test": "yarn test"        
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",
@@ -25,7 +28,8 @@
         "winston": "^3.17.0"
     },
     "devDependencies": {
-        "nodemon": "3.1.7"
+        "nodemon": "3.1.7",
+        "yarn": "^1.22.22" 
     },
     "engines": {
         "node": ">=20.17.0",
